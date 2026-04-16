@@ -21,7 +21,11 @@ async def upload_document(
     user_id: uuid.UUID = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
+    is_pdf = (
+        (file.filename and file.filename.lower().endswith(".pdf"))
+        or file.content_type == "application/pdf"
+    )
+    if not file.filename or not is_pdf:
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     file_bytes = await file.read()

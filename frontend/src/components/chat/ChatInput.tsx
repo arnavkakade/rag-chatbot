@@ -16,10 +16,15 @@ export default function ChatInput({ onSend, onCancel, isStreaming, disabled }: P
   const token = useAuthStore((s) => s.token);
   const { selectedDocumentIds, toggleDocumentSelection, clearDocumentSelection } = useChatStore();
 
-  useEffect(() => {
+  const loadDocs = () => {
     if (!token) return;
     listDocuments(token).then((r) => setDocuments(r.documents.filter((d) => d.status === "ready"))).catch(() => {});
-  }, [token]);
+  };
+
+  useEffect(() => { loadDocs(); }, [token]);
+
+  // Reload documents when the picker is opened (ensures fresh list)
+  useEffect(() => { if (showDocPicker) loadDocs(); }, [showDocPicker]);
 
   useEffect(() => { if (ref.current) { ref.current.style.height = "auto"; ref.current.style.height = Math.min(ref.current.scrollHeight, 160) + "px"; } }, [message]);
 

@@ -8,8 +8,13 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+# Supabase's pooler on port 6543 uses PgBouncer in transaction mode,
+# which doesn't support prepared statements.  Switch to session-mode
+# pooler (port 5432) so asyncpg prepared-statement caching works.
+_db_url = settings.DATABASE_URL.replace(":6543/", ":5432/")
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    _db_url,
     echo=settings.DEBUG,
     pool_size=5,
     max_overflow=5,

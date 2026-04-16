@@ -14,7 +14,7 @@ export default function DocumentPanel({ onClose }: Props) {
   const [dragOver, setDragOver] = useState(false);
 
   const loadDocs = useCallback(async () => { if (!token) return; try { const r = await listDocuments(token); setDocuments(r.documents); } catch { toast.error("Failed to load documents"); } }, [token]);
-  useEffect(() => { loadDocs(); }, [loadDocs]);
+  useEffect(() => { let cancelled = false; const load = async () => { if (!token) return; try { const r = await listDocuments(token); if (!cancelled) setDocuments(r.documents); } catch { if (!cancelled) toast.error("Failed to load documents"); } }; load(); return () => { cancelled = true; }; }, [token]);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || !token) return; setUploading(true);
@@ -37,7 +37,7 @@ export default function DocumentPanel({ onClose }: Props) {
         <div className={`mx-6 mt-4 border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragOver ? "border-brand-500 bg-brand-600/10" : "border-gray-700 hover:border-gray-600"}`}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); handleUpload(e.dataTransfer.files); }}>
           <Upload size={32} className={`mx-auto mb-3 ${dragOver ? "text-brand-400" : "text-gray-500"}`} />
-          <p className="text-sm text-gray-400 mb-2">Drag & drop PDFs here, or <label className="text-brand-400 hover:text-brand-300 cursor-pointer underline underline-offset-2">browse<input type="file" accept=".pdf" multiple className="hidden" onChange={(e) => handleUpload(e.target.files)} disabled={uploading} /></label></p>
+          <p className="text-sm text-gray-400 mb-2">Drag & drop PDFs here, or <label className="text-brand-400 hover:text-brand-300 cursor-pointer underline underline-offset-2">browse<input type="file" accept=".pdf,application/pdf" multiple className="hidden" onChange={(e) => handleUpload(e.target.files)} disabled={uploading} /></label></p>
           <p className="text-xs text-gray-600">PDF files up to 20 MB</p>
           {uploading && <div className="mt-3 flex items-center justify-center gap-2 text-brand-400 text-sm"><Loader2 size={16} className="animate-spin" />Uploading & processing...</div>}
         </div>
